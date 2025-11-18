@@ -111,13 +111,13 @@ const App = () => {
       <h1 className="mb-4 text-2xl font-bold">TodoApp</h1>
       <div className="mb-4">
         <WelcomeMessage
-          name="寝屋川タヌキ"
+          name="show"
           uncompletedCount={uncompletedCount}
         />
       </div>
       <TodoList todos={todos} updateIsDone={updateIsDone} remove={remove} />
       <div className="mt-5 space-y-2 rounded-md border p-3">
-        <h2 className="text-lg font-bold">新しいタスクの追加</h2>
+        <h2 className="text-lg font-bold">新規タスクの追加</h2>
         <div>
           <div className="flex items-center space-x-2">
             <label className="font-bold" htmlFor="newTodoName">
