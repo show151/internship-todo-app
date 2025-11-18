@@ -15,6 +15,7 @@ const App = () => {
   const [newTodoPriority, setNewTodoPriority] = useState(3);
   const [newTodoDeadline, setNewTodoDeadline] = useState<Date | null>(null);
   const [newTodoNameError, setNewTodoNameError] = useState("");
+
   const [initialized, setInitialized] = useState(false);
   const localStorageKey = "TodoApp";
 
