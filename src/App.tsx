@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Todo } from "./types";
 import { initTodos } from "./initTodos";
 import WelcomeMessage from "./WelcomeMessage";
@@ -10,13 +10,38 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 
 const App = () => {
-  const [todos, setTodos] = useState<Todo[]>(initTodos);
+  const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoName, setNewTodoName] = useState("");
   const [newTodoPriority, setNewTodoPriority] = useState(3);
   const [newTodoDeadline, setNewTodoDeadline] = useState<Date | null>(null);
   const [newTodoNameError, setNewTodoNameError] = useState("");
+  const [initialized, setInitialized] = useState(false);
+  const localStorageKey = "TodoApp";
 
-  const uncompletedCount = todos.filter((todo: Todo) => !todo.isDone).length;
+  useEffect(() => {
+    const todoJsonStr = localStorage.getItem(localStorageKey);
+    if (todoJsonStr && todoJsonStr !== "[]") {
+      const storedTodos: Todo[] = JSON.parse(todoJsonStr);
+      const convertedTodos = storedTodos.map((todo) => ({
+        ...todo,
+        deadline: todo.deadline ? new Date(todo.deadline) : null,
+      }));
+      setTodos(convertedTodos);
+    } else {
+      setTodos(initTodos);
+    }
+    setInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (initialized) {
+      localStorage.setItem(localStorageKey, JSON.stringify(todos));
+    }
+  }, [todos, initialized]);
+
+  const uncompletedCount = todos.filter(
+    (todo: Todo) => !todo.isDone
+  ).length;
 
   const isValidTodoName = (name: string): string => {
     if (name.length < 2 || name.length > 32) {
@@ -41,10 +66,29 @@ const App = () => {
     setNewTodoDeadline(dt === "" ? null : new Date(dt));
   };
 
+  const removeCompletedTodos = () => {
+    const updatedTodos = todos.filter((todo) => !todo.isDone);
+    setTodos(updatedTodos);
+  };
+
+  const updateIsDone = (id: string, value: boolean) => {
+    const updatedTodos = todos.map((todo) => {
+      if (todo.id === id) {
+        return { ...todo, isDone: value };
+      } else {
+        return todo;
+      }
+    });
+    setTodos(updatedTodos);
+  };
+
+  const remove = (id: string) => {
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(updatedTodos);
+  };
+
   const addNewTodo = () => {
-    const err = isValidTodoName(newTodoName);
-    if (err !== "") {
-      setNewTodoNameError(err);
+    if (newTodoName.length < 2 || newTodoName.length > 32) {
       return;
     }
     const newTodo: Todo = {
@@ -70,8 +114,7 @@ const App = () => {
           uncompletedCount={uncompletedCount}
         />
       </div>
-      <TodoList todos={todos} />
-
+      <TodoList todos={todos} updateIsDone={updateIsDone} remove={remove} />
       <div className="mt-5 space-y-2 rounded-md border p-3">
         <h2 className="text-lg font-bold">新しいタスクの追加</h2>
         <div>
@@ -144,6 +187,16 @@ const App = () => {
           )}
         >
           追加
+        </button>
+
+        <button
+          type="button"
+          onClick={removeCompletedTodos}
+          className={
+            "mt-5 rounded-md bg-red-500 px-3 py-1 font-bold text-white hover:bg-red-600"
+          }
+        >
+          完了済みのタスクを削除
         </button>
       </div>
     </div>
